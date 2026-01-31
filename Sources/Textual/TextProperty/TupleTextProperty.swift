@@ -1,5 +1,6 @@
 import Foundation
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 struct TupleTextProperty<each P: TextProperty>: TextProperty {
   var properties: (repeat each P)
 

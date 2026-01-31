@@ -1,5 +1,5 @@
 {
-  "originHash" : "1605161967b67e06e264000aeba72e2864de1d101dcd102f8736dda2baaafcf8",
+  "originHash" : "af9099b5bc15d15ac2b413c94980a3f54623552cded5dcd9c48fe5d9e29bf867",
   "pins" : [
     {
       "identity" : "swift-concurrency-extras",
@@ -40,10 +40,10 @@
     {
       "identity" : "swiftui-math",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/gonzalezreal/swiftui-math",
+      "location" : "https://github.com/bipa-app/swiftui-math",
       "state" : {
-        "revision" : "0b5c2cfaaec8d6193db206f675048eeb5ce95f71",
-        "version" : "0.1.0"
+        "branch" : "ios16",
+        "revision" : "98e01984a37d843e96b60a271aaed95f70c3b0e4"
       }
     },
     {

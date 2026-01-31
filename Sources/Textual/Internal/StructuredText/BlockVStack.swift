@@ -20,11 +20,19 @@ extension StructuredText {
     }
 
     var body: some View {
-      Group(subviews: content) { children in
-        BlockVStackLayout(textAlignment: textAlignment) {
-          ForEach(children) {
-            BlockLayoutView($0)
+      if #available(iOS 18, macOS 15, tvOS 18, watchOS 11, visionOS 2, *) {
+        Group(subviews: content) { children in
+          BlockVStackLayout(textAlignment: textAlignment) {
+            ForEach(children) {
+              BlockLayoutView($0)
+            }
           }
+        }
+      } else {
+        // iOS 16/17 fallback: Use simple VStack layout without subview introspection
+        // This loses the advanced block spacing features but maintains basic functionality
+        BlockVStackLayout(textAlignment: textAlignment) {
+          content
         }
       }
     }
@@ -139,6 +147,7 @@ extension StructuredText {
   }
 }
 
+@available(iOS 17, macOS 14, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 #Preview {

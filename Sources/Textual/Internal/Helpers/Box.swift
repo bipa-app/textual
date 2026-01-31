@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 final class Box<Value> {
   var wrappedValue: Value
@@ -34,5 +35,22 @@ final class KeyBox<Value: Hashable>: NSObject {
       return false
     }
     return wrappedValue == other.wrappedValue
+  }
+}
+
+// MARK: - Hashable CGSize wrapper for use in dictionaries on iOS 16+
+// CGSize only conforms to Hashable in iOS 18+, so we need a wrapper
+
+struct HashableCGSize: Hashable {
+  let width: CGFloat
+  let height: CGFloat
+
+  init(_ size: CGSize) {
+    self.width = size.width
+    self.height = size.height
+  }
+
+  var cgSize: CGSize {
+    CGSize(width: width, height: height)
   }
 }

@@ -39,6 +39,7 @@ public struct AnyTextProperty: TextProperty {
   }
 
   /// Creates a single property by composing multiple properties.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public init<each P: TextProperty>(_ properties: repeat each P) {
     self.init(TupleTextProperty(repeat each properties))
   }

@@ -10,17 +10,35 @@ import SwiftUI
 // (`PlatformTextSelectionInteraction`), which presents the appropriate selection UI for macOS
 // or iOS. This separation keeps model management in shared code while platform interactions
 // remain independent.
+//
+// Note: This feature requires iOS 17+ due to Text.Layout API dependency.
 
 struct TextSelectionInteraction: ViewModifier {
-  #if TEXTUAL_ENABLE_TEXT_SELECTION
+  func body(content: Content) -> some View {
+    #if TEXTUAL_ENABLE_TEXT_SELECTION
+      if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+        TextSelectionInteractionContent17(content: content)
+      } else {
+        // iOS 16: Text selection is not available
+        content
+      }
+    #else
+      content
+    #endif
+  }
+}
+
+#if TEXTUAL_ENABLE_TEXT_SELECTION
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+  private struct TextSelectionInteractionContent17<Content: View>: View {
     @Environment(\.textSelection) private var textSelection
     @Environment(TextSelectionCoordinator.self) private var coordinator: TextSelectionCoordinator?
 
     @State private var model = TextSelectionModel()
-  #endif
 
-  func body(content: Content) -> some View {
-    #if TEXTUAL_ENABLE_TEXT_SELECTION
+    let content: Content
+
+    var body: some View {
       if textSelection.allowsSelection {
         content
           .overlayTextLayoutCollection { layoutCollection in
@@ -34,11 +52,9 @@ struct TextSelectionInteraction: ViewModifier {
       } else {
         content
       }
-    #else
-      content
-    #endif
+    }
   }
-}
+#endif
 
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   extension EnvironmentValues {

@@ -21,19 +21,30 @@ extension FontDescriptor {
     in environment: TextEnvironmentValues
   ) -> FontDescriptor {
     #if canImport(AppKit)
-      preferredFontDescriptor(forTextStyle: .init(style))
+      return preferredFontDescriptor(forTextStyle: .init(style))
     #elseif canImport(UIKit) && !os(watchOS)
-      preferredFontDescriptor(
-        withTextStyle: .init(style),
-        compatibleWith: UITraitCollection(
-          legibilityWeight: .init(environment.legibilityWeight)
+      if #available(iOS 17, tvOS 17, *) {
+        return preferredFontDescriptor(
+          withTextStyle: .init(style),
+          compatibleWith: UITraitCollection(
+            legibilityWeight: .init(environment.legibilityWeight)
+          )
+          .modifyingTraits {
+            $0.preferredContentSizeCategory = .init(environment.dynamicTypeSize)
+          }
         )
-        .modifyingTraits {
-          $0.preferredContentSizeCategory = .init(environment.dynamicTypeSize)
-        }
-      )
+      } else {
+        // iOS 16: Use traitsUpdating instead of modifyingTraits
+        let baseTraits = UITraitCollection(legibilityWeight: .init(environment.legibilityWeight))
+        let sizeTraits = UITraitCollection(preferredContentSizeCategory: .init(environment.dynamicTypeSize))
+        let combinedTraits = UITraitCollection(traitsFrom: [baseTraits, sizeTraits])
+        return preferredFontDescriptor(
+          withTextStyle: .init(style),
+          compatibleWith: combinedTraits
+        )
+      }
     #else
-      preferredFontDescriptor(withTextStyle: .init(style))
+      return preferredFontDescriptor(withTextStyle: .init(style))
     #endif
   }
 }
@@ -91,6 +102,24 @@ extension PlatformFont.TextStyle {
         #if os(watchOS)
           return .preferredFont(forTextStyle: .init(textStyle))
         #else
+          return preferredFontForEnvironment(textStyle: textStyle, environment: environment)
+        #endif
+      }
+
+      let fontMetrics = UIFontMetrics(forTextStyle: .init(textStyle))
+      #if os(watchOS)
+        return fontMetrics.scaledFont(for: font)
+      #else
+        return scaledFontForEnvironment(font: font, fontMetrics: fontMetrics, environment: environment)
+      #endif
+    }
+
+    #if !os(watchOS)
+      private static func preferredFontForEnvironment(
+        textStyle: Font.TextStyle,
+        environment: TextEnvironmentValues
+      ) -> PlatformFont {
+        if #available(iOS 17, tvOS 17, *) {
           return .preferredFont(
             forTextStyle: .init(textStyle),
             compatibleWith: UITraitCollection(
@@ -99,22 +128,37 @@ extension PlatformFont.TextStyle {
               $0.preferredContentSizeCategory = .init(environment.dynamicTypeSize)
             }
           )
-        #endif
+        } else {
+          // iOS 16: Combine trait collections
+          let baseTraits = UITraitCollection(legibilityWeight: .init(environment.legibilityWeight))
+          let sizeTraits = UITraitCollection(preferredContentSizeCategory: .init(environment.dynamicTypeSize))
+          let combinedTraits = UITraitCollection(traitsFrom: [baseTraits, sizeTraits])
+          return .preferredFont(forTextStyle: .init(textStyle), compatibleWith: combinedTraits)
+        }
       }
 
-      let fontMetrics = UIFontMetrics(forTextStyle: .init(textStyle))
-      #if os(watchOS)
-        return fontMetrics.scaledFont(for: font)
-      #else
-        return fontMetrics.scaledFont(
-          for: font,
-          compatibleWith: UITraitCollection(
-            legibilityWeight: .init(environment.legibilityWeight)
-          ).modifyingTraits {
-            $0.preferredContentSizeCategory = .init(environment.dynamicTypeSize)
-          }
-        )
-      #endif
-    }
+      private static func scaledFontForEnvironment(
+        font: UIFont,
+        fontMetrics: UIFontMetrics,
+        environment: TextEnvironmentValues
+      ) -> PlatformFont {
+        if #available(iOS 17, tvOS 17, *) {
+          return fontMetrics.scaledFont(
+            for: font,
+            compatibleWith: UITraitCollection(
+              legibilityWeight: .init(environment.legibilityWeight)
+            ).modifyingTraits {
+              $0.preferredContentSizeCategory = .init(environment.dynamicTypeSize)
+            }
+          )
+        } else {
+          // iOS 16: Combine trait collections
+          let baseTraits = UITraitCollection(legibilityWeight: .init(environment.legibilityWeight))
+          let sizeTraits = UITraitCollection(preferredContentSizeCategory: .init(environment.dynamicTypeSize))
+          let combinedTraits = UITraitCollection(traitsFrom: [baseTraits, sizeTraits])
+          return fontMetrics.scaledFont(for: font, compatibleWith: combinedTraits)
+        }
+      }
+    #endif
   }
 #endif

@@ -33,14 +33,31 @@ struct WithInlineStyle<Content: View>: View {
   }
 
   var body: some View {
-    content(output ?? AttributedString())
-      .onChange(of: Tuple(input, style, environment), initial: true) { _, newValue in
-        resolve(
-          attributedString: newValue.values.0,
-          style: newValue.values.1,
-          in: newValue.values.2
-        )
-      }
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      content(output ?? AttributedString())
+        .onChange(of: Tuple(input, style, environment), initial: true) { _, newValue in
+          resolve(
+            attributedString: newValue.values.0,
+            style: newValue.values.1,
+            in: newValue.values.2
+          )
+        }
+    } else {
+      // iOS 16 fallback: use separate onChange handlers
+      content(output ?? AttributedString())
+        .onAppear {
+          resolve(attributedString: input, style: style, in: environment)
+        }
+        .onChange(of: input) { newValue in
+          resolve(attributedString: newValue, style: style, in: environment)
+        }
+        .onChange(of: style) { newValue in
+          resolve(attributedString: input, style: newValue, in: environment)
+        }
+        .onChange(of: environment) { newValue in
+          resolve(attributedString: input, style: style, in: newValue)
+        }
+    }
   }
 
   private func resolve(
