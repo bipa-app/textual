@@ -60,35 +60,103 @@ public struct Overflow<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
     case .scroll:
-      ScrollView(.horizontal) {
-        ZStack {
-          // Update the scroll view height when the content height changes
-          Color.clear
-            .frame(minHeight: contentHeight)
-          content(.scroll(containerWidth: containerWidth))
-            .onGeometryChange(for: CGFloat.self, of: \.size.height) {
-              contentHeight = $0
-            }
-            // Make text selection local in scrollable regions
-            .modifier(TextSelectionInteraction())
-            .transformPreference(Text.LayoutKey.self) { value in
-              value = []
-            }
-        }
+      scrollContent
+    }
+  }
+
+  @ViewBuilder
+  private var scrollContent: some View {
+    ScrollView(.horizontal) {
+      ZStack {
+        // Update the scroll view height when the content height changes
+        Color.clear
+          .frame(minHeight: contentHeight)
+        content(.scroll(containerWidth: containerWidth))
+          .onGeometryChange(for: CGFloat.self, of: \.size.height) {
+            contentHeight = $0
+          }
+          // Make text selection local in scrollable regions
+          .modifier(TextSelectionInteraction())
+          .modifier(TextLayoutKeyTransform())
       }
-      .onScrollGeometryChange(for: CGFloat.self, of: \.containerSize.width) {
-        containerWidth = $1
-      }
-      // Propagate gesture exclusion area
-      .background(
-        GeometryReader { geometry in
-          Color.clear
-            .preference(
-              key: OverflowFrameKey.self,
-              value: [geometry.frame(in: .textContainer)]
-            )
+    }
+    .modifier(ScrollGeometryObserver(containerWidth: $containerWidth))
+    // Propagate gesture exclusion area
+    .modifier(OverflowFramePropagator())
+  }
+}
+
+// MARK: - iOS 17+ Availability Wrappers
+
+/// Propagates gesture exclusion area using textContainer coordinate space (iOS 17+)
+private struct OverflowFramePropagator: ViewModifier {
+  func body(content: Content) -> some View {
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      content
+        .background(
+          GeometryReader { geometry in
+            Color.clear
+              .preference(
+                key: OverflowFrameKey.self,
+                value: [geometry.frame(in: .textContainer)]
+              )
+          }
+        )
+    } else {
+      // iOS 16: textContainer coordinate space not available, skip gesture exclusion
+      content
+    }
+  }
+}
+
+/// Wraps Text.LayoutKey.self transformPreference which requires iOS 17+
+private struct TextLayoutKeyTransform: ViewModifier {
+  func body(content: Content) -> some View {
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      content
+        .transformPreference(Text.LayoutKey.self) { value in
+          value = []
         }
-      )
+    } else {
+      content
+    }
+  }
+}
+
+/// Wraps onScrollGeometryChange which requires iOS 18+
+private struct ScrollGeometryObserver: ViewModifier {
+  @Binding var containerWidth: CGFloat?
+
+  func body(content: Content) -> some View {
+    if #available(iOS 18, macOS 15, tvOS 18, watchOS 11, visionOS 2, *) {
+      content
+        .onScrollGeometryChange(for: CGFloat.self, of: \.containerSize.width) {
+          containerWidth = $1
+        }
+    } else if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      // Fallback for iOS 17: use GeometryReader to measure container
+      content
+        .background(
+          GeometryReader { geometry in
+            Color.clear
+              .onAppear { containerWidth = geometry.size.width }
+              .onChange(of: geometry.size.width) { _, newValue in
+                containerWidth = newValue
+              }
+          }
+        )
+    } else {
+      // Fallback for iOS 16: use older onChange signature
+      content
+        .background(
+          GeometryReader { geometry in
+            Color.clear
+              .onAppear { containerWidth = geometry.size.width }
+              .onChange(of: geometry.size.width) { newValue in
+                containerWidth = newValue
+              }
+          }
+        )
     }
   }
 }

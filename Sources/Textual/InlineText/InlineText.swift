@@ -111,15 +111,30 @@ public struct InlineText: View {
   }
 
   public var body: some View {
-    WithAttachments(attributedString) {
-      WithInlineStyle($0) {
-        TextFragment($0)
-          .modifier(TextSelectionInteraction())
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      WithAttachments(attributedString) {
+        WithInlineStyle($0) {
+          TextFragment($0)
+            .modifier(TextSelectionInteraction())
+        }
       }
-    }
-    .coordinateSpace(.textContainer)
-    .onChange(of: markup, initial: true) { _, value in
-      self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
+      .coordinateSpace(.textContainer)
+      .onChange(of: markup, initial: true) { _, value in
+        self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
+      }
+    } else {
+      // iOS 16 fallback: no textContainer coordinate space or text selection
+      WithAttachments(attributedString) {
+        WithInlineStyle($0) {
+          TextFragment($0)
+        }
+      }
+      .onChange(of: markup) { value in
+        self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
+      }
+      .onAppear {
+        self.attributedString = (try? parser.attributedString(for: markup)) ?? .init()
+      }
     }
   }
 }

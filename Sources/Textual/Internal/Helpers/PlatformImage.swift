@@ -26,12 +26,20 @@ extension PlatformImage {
       }
       return image
     #elseif canImport(UIKit) && !os(watchOS)
-      PlatformImage(
-        named: name,
-        in: bundle,
-        compatibleWith: UITraitCollection(userInterfaceStyle: .init(environment.colorScheme))
-          .modifyingTraits { $0.accessibilityContrast = .init(environment.colorSchemeContrast) }
-      )
+      if #available(iOS 17, tvOS 17, *) {
+        return PlatformImage(
+          named: name,
+          in: bundle,
+          compatibleWith: UITraitCollection(userInterfaceStyle: .init(environment.colorScheme))
+            .modifyingTraits { $0.accessibilityContrast = .init(environment.colorSchemeContrast) }
+        )
+      } else {
+        // iOS 16 fallback: create combined trait collection without modifyingTraits
+        let styleTraits = UITraitCollection(userInterfaceStyle: .init(environment.colorScheme))
+        let contrastTraits = UITraitCollection(accessibilityContrast: .init(environment.colorSchemeContrast))
+        let combinedTraits = UITraitCollection(traitsFrom: [styleTraits, contrastTraits])
+        return PlatformImage(named: name, in: bundle, compatibleWith: combinedTraits)
+      }
     #else
       PlatformImage(named: name, in: bundle, with: nil)
     #endif

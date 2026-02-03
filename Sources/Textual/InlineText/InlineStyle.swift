@@ -34,6 +34,7 @@ public struct InlineStyle: Sendable, Hashable {
   ///
   /// - Parameter properties: Text properties to apply to inline code elements.
   /// - Returns: A new style with the modified code formatting.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public func code<each P: TextProperty>(_ properties: repeat each P) -> Self {
     modifyingStyle { $0.code = AnyTextProperty(repeat each properties) }
   }
@@ -42,6 +43,7 @@ public struct InlineStyle: Sendable, Hashable {
   ///
   /// - Parameter properties: Text properties to apply to emphasized text.
   /// - Returns: A new style with the modified emphasis formatting.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public func emphasis<each P: TextProperty>(_ properties: repeat each P) -> Self {
     modifyingStyle { $0.emphasis = AnyTextProperty(repeat each properties) }
   }
@@ -50,6 +52,7 @@ public struct InlineStyle: Sendable, Hashable {
   ///
   /// - Parameter properties: Text properties to apply to links.
   /// - Returns: A new style with the modified link formatting.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public func link<each P: TextProperty>(_ properties: repeat each P) -> Self {
     modifyingStyle { $0.link = AnyTextProperty(repeat each properties) }
   }
@@ -58,6 +61,7 @@ public struct InlineStyle: Sendable, Hashable {
   ///
   /// - Parameter properties: Text properties to apply to strong (bold) text.
   /// - Returns: A new style with the modified strong formatting.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public func strong<each P: TextProperty>(_ properties: repeat each P) -> Self {
     modifyingStyle { $0.strong = AnyTextProperty(repeat each properties) }
   }
@@ -66,6 +70,7 @@ public struct InlineStyle: Sendable, Hashable {
   ///
   /// - Parameter properties: Text properties to apply to strikethrough text.
   /// - Returns: A new style with the modified strikethrough formatting.
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   public func strikethrough<each P: TextProperty>(_ properties: repeat each P) -> Self {
     modifyingStyle { $0.strikethrough = AnyTextProperty(repeat each properties) }
   }

@@ -2,62 +2,101 @@ import SwiftUI
 
 extension StructuredText.HighlighterTheme {
   /// The default syntax-highlighting theme used by Textual.
-  public static let `default` = Self(
-    foregroundColor: .codePlain,
-    backgroundColor: .codeBackground,
-    tokenProperties: [
-      // Keywords
-      .keyword: AnyTextProperty(
-        .foregroundColor(.codeKeyword),
-        .fontWeight(.semibold)
-      ),
-      .builtin: AnyTextProperty(.foregroundColor(.codeBuiltin)),
-      .literal: AnyTextProperty(
-        .foregroundColor(.codeKeyword),
-        .fontWeight(.semibold)
-      ),
-      // Strings and characters
-      .string: AnyTextProperty(.foregroundColor(.codeString)),
-      .char: AnyTextProperty(.foregroundColor(.codeChar)),
-      .regex: AnyTextProperty(.foregroundColor(.codeString)),
-      .url: AnyTextProperty(.foregroundColor(.codeURL)),
-      // Numbers and symbols
-      .number: AnyTextProperty(.foregroundColor(.codeNumber)),
-      .symbol: AnyTextProperty(.foregroundColor(.codePlain)),
-      .boolean: AnyTextProperty(
-        .foregroundColor(.codeKeyword),
-        .fontWeight(.semibold)
-      ),
-      // Types and classes
-      .className: AnyTextProperty(.foregroundColor(.codeClass)),
-      // Functions
-      .function: AnyTextProperty(.foregroundColor(.codeFunction)),
-      .functionName: AnyTextProperty(.foregroundColor(.codeFunction)),
-      // Variables and properties
-      .variable: AnyTextProperty(.foregroundColor(.codeVariable)),
-      .constant: AnyTextProperty(.foregroundColor(.codeConstant)),
-      .property: AnyTextProperty(.foregroundColor(.codeVariable)),
-      // Comments
-      .comment: AnyTextProperty(.foregroundColor(.codeComment)),
-      .blockComment: AnyTextProperty(.foregroundColor(.codeComment)),
-      .docComment: AnyTextProperty(.foregroundColor(.codeComment)),
-      .mark: AnyTextProperty(
-        .foregroundColor(.codeMark),
-        .fontWeight(.bold)
-      ),
-      // Preprocessor
-      .preprocessor: AnyTextProperty(.foregroundColor(.codePreprocessor)),
-      // Swift
-      .directive: AnyTextProperty(.foregroundColor(.codePreprocessor)),
-      .attribute: AnyTextProperty(.foregroundColor(.codeAttribute)),
-      // Markup
-      .tag: AnyTextProperty(.foregroundColor(.codeChar)),
-      .attributeName: AnyTextProperty(.foregroundColor(.codeAttribute)),
-      // Diff
-      .inserted: AnyTextProperty(.foregroundColor(.codeInserted)),
-      .deleted: AnyTextProperty(.foregroundColor(.codeDeleted)),
-    ]
-  )
+  public static var `default`: Self {
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      return Self(
+        foregroundColor: .codePlain,
+        backgroundColor: .codeBackground,
+        tokenProperties: [
+          // Keywords
+          .keyword: AnyTextProperty(
+            .foregroundColor(.codeKeyword),
+            .fontWeight(.semibold)
+          ),
+          .builtin: AnyTextProperty(.foregroundColor(.codeBuiltin)),
+          .literal: AnyTextProperty(
+            .foregroundColor(.codeKeyword),
+            .fontWeight(.semibold)
+          ),
+          // Strings and characters
+          .string: AnyTextProperty(.foregroundColor(.codeString)),
+          .char: AnyTextProperty(.foregroundColor(.codeChar)),
+          .regex: AnyTextProperty(.foregroundColor(.codeString)),
+          .url: AnyTextProperty(.foregroundColor(.codeURL)),
+          // Numbers and symbols
+          .number: AnyTextProperty(.foregroundColor(.codeNumber)),
+          .symbol: AnyTextProperty(.foregroundColor(.codePlain)),
+          .boolean: AnyTextProperty(
+            .foregroundColor(.codeKeyword),
+            .fontWeight(.semibold)
+          ),
+          // Types and classes
+          .className: AnyTextProperty(.foregroundColor(.codeClass)),
+          // Functions
+          .function: AnyTextProperty(.foregroundColor(.codeFunction)),
+          .functionName: AnyTextProperty(.foregroundColor(.codeFunction)),
+          // Variables and properties
+          .variable: AnyTextProperty(.foregroundColor(.codeVariable)),
+          .constant: AnyTextProperty(.foregroundColor(.codeConstant)),
+          .property: AnyTextProperty(.foregroundColor(.codeVariable)),
+          // Comments
+          .comment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .blockComment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .docComment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .mark: AnyTextProperty(
+            .foregroundColor(.codeMark),
+            .fontWeight(.bold)
+          ),
+          // Preprocessor
+          .preprocessor: AnyTextProperty(.foregroundColor(.codePreprocessor)),
+          // Swift
+          .directive: AnyTextProperty(.foregroundColor(.codePreprocessor)),
+          .attribute: AnyTextProperty(.foregroundColor(.codeAttribute)),
+          // Markup
+          .tag: AnyTextProperty(.foregroundColor(.codeChar)),
+          .attributeName: AnyTextProperty(.foregroundColor(.codeAttribute)),
+          // Diff
+          .inserted: AnyTextProperty(.foregroundColor(.codeInserted)),
+          .deleted: AnyTextProperty(.foregroundColor(.codeDeleted)),
+        ]
+      )
+    } else {
+      // iOS 16 fallback: use single-property tokens (no compound properties)
+      return Self(
+        foregroundColor: .codePlain,
+        backgroundColor: .codeBackground,
+        tokenProperties: [
+          .keyword: AnyTextProperty(.foregroundColor(.codeKeyword)),
+          .builtin: AnyTextProperty(.foregroundColor(.codeBuiltin)),
+          .literal: AnyTextProperty(.foregroundColor(.codeKeyword)),
+          .string: AnyTextProperty(.foregroundColor(.codeString)),
+          .char: AnyTextProperty(.foregroundColor(.codeChar)),
+          .regex: AnyTextProperty(.foregroundColor(.codeString)),
+          .url: AnyTextProperty(.foregroundColor(.codeURL)),
+          .number: AnyTextProperty(.foregroundColor(.codeNumber)),
+          .symbol: AnyTextProperty(.foregroundColor(.codePlain)),
+          .boolean: AnyTextProperty(.foregroundColor(.codeKeyword)),
+          .className: AnyTextProperty(.foregroundColor(.codeClass)),
+          .function: AnyTextProperty(.foregroundColor(.codeFunction)),
+          .functionName: AnyTextProperty(.foregroundColor(.codeFunction)),
+          .variable: AnyTextProperty(.foregroundColor(.codeVariable)),
+          .constant: AnyTextProperty(.foregroundColor(.codeConstant)),
+          .property: AnyTextProperty(.foregroundColor(.codeVariable)),
+          .comment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .blockComment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .docComment: AnyTextProperty(.foregroundColor(.codeComment)),
+          .mark: AnyTextProperty(.foregroundColor(.codeMark)),
+          .preprocessor: AnyTextProperty(.foregroundColor(.codePreprocessor)),
+          .directive: AnyTextProperty(.foregroundColor(.codePreprocessor)),
+          .attribute: AnyTextProperty(.foregroundColor(.codeAttribute)),
+          .tag: AnyTextProperty(.foregroundColor(.codeChar)),
+          .attributeName: AnyTextProperty(.foregroundColor(.codeAttribute)),
+          .inserted: AnyTextProperty(.foregroundColor(.codeInserted)),
+          .deleted: AnyTextProperty(.foregroundColor(.codeDeleted)),
+        ]
+      )
+    }
+  }
 }
 
 extension DynamicColor {

@@ -1,6 +1,7 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   struct EmptyTextLayoutCollection: TextLayoutCollection {
     var layouts: [any TextLayout] {
       []

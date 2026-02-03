@@ -1,8 +1,8 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
-    @available(macOS 10.0, *)
     @available(iOS, unavailable)
     @available(visionOS, unavailable)
     func wordRange(for position: TextPosition) -> TextRange? {

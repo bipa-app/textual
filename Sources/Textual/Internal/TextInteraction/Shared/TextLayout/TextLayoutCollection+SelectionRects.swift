@@ -8,9 +8,10 @@
   //
   // The algorithm walks the run slices in a range, merges adjacent slices that share a layout
   // direction (to avoid breaking RTL selection into multiple rectangles), then trims the leading
-  // and trailing spans to caret positions. Finally, it “inflates” per-line rectangles to fill any
+  // and trailing spans to caret positions. Finally, it "inflates" per-line rectangles to fill any
   // vertical gaps between lines so selection highlights appear as a single block.
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
     func selectionRects(for range: TextRange, layout: Text.Layout) -> [TextSelectionRect] {
       guard

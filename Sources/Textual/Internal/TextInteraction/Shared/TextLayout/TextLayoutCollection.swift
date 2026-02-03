@@ -1,6 +1,7 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   protocol TextLayoutCollection {
     var layouts: [any TextLayout] { get }
 
@@ -9,6 +10,7 @@
     func index(of layout: Text.Layout) -> Int?
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   struct AnyTextLayoutCollection: TextLayoutCollection, Equatable {
     private let base: any TextLayoutCollection
 
@@ -37,6 +39,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   protocol TextLayout {
     var attributedString: NSAttributedString { get }
     var origin: CGPoint { get }
@@ -44,6 +47,7 @@
     var lines: [any TextLine] { get }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayout {
     var frame: CGRect {
       bounds.offsetBy(dx: origin.x, dy: origin.y)
@@ -54,12 +58,14 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   protocol TextLine {
     var origin: CGPoint { get }
     var typographicBounds: CGRect { get }
     var runs: [any TextRun] { get }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   protocol TextRun {
     var layoutDirection: LayoutDirection { get }
     var typographicBounds: CGRect { get }
@@ -67,6 +73,7 @@
     var slices: [any TextRunSlice] { get }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   protocol TextRunSlice {
     var typographicBounds: CGRect { get }
     var characterRange: Range<Int> { get }

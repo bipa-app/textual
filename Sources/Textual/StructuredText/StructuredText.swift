@@ -116,17 +116,31 @@ public struct StructuredText: View {
   }
 
   public var body: some View {
-    WithAttachments(attributedString) {
-      BlockContent(content: $0)
-        .modifier(TextSelectionInteraction())
-        .modifier(TextSelectionCoordination())
+    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+      WithAttachments(attributedString) {
+        BlockContent(content: $0)
+          .modifier(TextSelectionInteraction())
+          .modifier(TextSelectionCoordination())
+      }
+      .coordinateSpace(.textContainer)
+      .onChange(of: markup, initial: true) {
+        markupDidChange(markup)
+      }
+      // Disable line limit to avoid per-fragment truncation
+      .lineLimit(nil)
+    } else {
+      // iOS 16 fallback: no textContainer coordinate space or text selection
+      WithAttachments(attributedString) {
+        BlockContent(content: $0)
+      }
+      .onChange(of: markup) { newValue in
+        markupDidChange(newValue)
+      }
+      .onAppear {
+        markupDidChange(markup)
+      }
+      .lineLimit(nil)
     }
-    .coordinateSpace(.textContainer)
-    .onChange(of: markup, initial: true) {
-      markupDidChange(markup)
-    }
-    // Disable line limit to avoid per-fragment truncation
-    .lineLimit(nil)
   }
 
   private func markupDidChange(_ markup: String) {
@@ -168,6 +182,7 @@ extension StructuredText {
   }
 }
 
+@available(iOS 17, macOS 14, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 #Preview(traits: .fixedLayout(width: 400, height: 600)) {
@@ -209,6 +224,7 @@ extension StructuredText {
   }
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("Custom Emoji") {
   let emoji: Set<Emoji> = [
     Emoji(shortcode: "dog", url: URL(string: "https://picsum.photos/id/237/32/32")!),

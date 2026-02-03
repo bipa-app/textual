@@ -1,6 +1,7 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
     func url(for point: CGPoint) -> URL? {
       guard let layout = layouts.first(where: { $0.frame.contains(point) }) else {
@@ -219,6 +220,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
     fileprivate func closestPosition(
       to x: CGFloat,
@@ -278,6 +280,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayout {
     fileprivate func lineIndex(closestToY y: CGFloat) -> Int {
       var closestIndex = 0
@@ -293,6 +296,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLine {
     fileprivate func runIndex(closestToX x: CGFloat) -> Int {
       var closestIndex = 0
@@ -308,6 +312,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextRun {
     fileprivate func sliceIndex(closestToX x: CGFloat) -> Int {
       var closestIndex = 0

@@ -7,34 +7,42 @@ import SwiftUI
 // SwiftUI resolves a `Text.Layout` for each fragment and publishes it through the `Text.LayoutKey`
 // preference. This modifier reads the anchored layout, converts tap locations to layout-local
 // coordinates, and looks for the first run whose typographic bounds contains the tap. When a run
-// has a `url`, the modifier invokes the environment’s `openURL` action.
+// has a `url`, the modifier invokes the environment's `openURL` action.
+//
+// Note: This feature requires iOS 17+ due to Text.Layout API dependency.
 
 struct TextLinkInteraction: ViewModifier {
   @Environment(\.openURL) private var openURL
 
   func body(content: Content) -> some View {
     #if TEXTUAL_ENABLE_LINKS
-      content
-        .overlayPreferenceValue(Text.LayoutKey.self) { value in
-          if let anchoredLayout = value.first {
-            GeometryReader { geometry in
-              Color.clear
-                .contentShape(.rect)
-                .gesture(
-                  tap(
-                    origin: geometry[anchoredLayout.origin],
-                    layout: anchoredLayout.layout
+      if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
+        content
+          .overlayPreferenceValue(Text.LayoutKey.self) { value in
+            if let anchoredLayout = value.first {
+              GeometryReader { geometry in
+                Color.clear
+                  .contentShape(.rect)
+                  .gesture(
+                    tap(
+                      origin: geometry[anchoredLayout.origin],
+                      layout: anchoredLayout.layout
+                    )
                   )
-                )
+              }
             }
           }
-        }
+      } else {
+        // iOS 16: Link interaction is not available
+        content
+      }
     #else
       content
     #endif
   }
 
   #if TEXTUAL_ENABLE_LINKS
+    @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
     private func tap(origin: CGPoint, layout: Text.Layout) -> some Gesture {
       SpatialTapGesture()
         .onEnded { value in

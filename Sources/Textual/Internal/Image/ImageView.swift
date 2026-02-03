@@ -37,7 +37,7 @@ private struct AnimatedImageView: View {
       SwiftUI.Image(decorative: frame, scale: 1.0)
         .resizable()
     }
-    .onChange(of: content) { _, newValue in
+    .onChange(of: content) { newValue in
       clock = AnimationClock(image: newValue)
     }
   }
@@ -125,6 +125,7 @@ extension AnimationClock {
 
 // MARK: - Preview
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("JPEG") {
   @Previewable @State var image: Image?
 
@@ -144,6 +145,7 @@ extension AnimationClock {
   }
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("GIF") {
   @Previewable @State var image: Image?
 
@@ -166,6 +168,7 @@ extension AnimationClock {
   }
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("APNG") {
   @Previewable @State var image: Image?
 
@@ -188,6 +191,7 @@ extension AnimationClock {
   }
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("webP") {
   @Previewable @State var image: Image?
 
@@ -207,6 +211,7 @@ extension AnimationClock {
   }
 }
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 #Preview("HEIC") {
   @Previewable @State var image: Image?
 

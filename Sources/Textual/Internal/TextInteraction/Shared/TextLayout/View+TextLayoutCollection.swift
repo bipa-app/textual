@@ -3,13 +3,16 @@
 
   // MARK: - Overview
   //
-  // `overlayTextLayoutCollection` adapts SwiftUI’s `Text.Layout` preference values into a
+  // `overlayTextLayoutCollection` adapts SwiftUI's `Text.Layout` preference values into a
   // `TextLayoutCollection` that the selection system can query.
   //
   // The collection includes each anchored layout plus the geometry needed to convert anchors into
   // concrete origins. Platform interactions and selection rendering use the collection for hit
   // testing, position mapping, and selection rectangle computation.
+  //
+  // Note: This feature requires iOS 17+ due to Text.Layout API dependency.
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension View {
     func overlayTextLayoutCollection(
       @ViewBuilder content: @escaping (any TextLayoutCollection) -> some View

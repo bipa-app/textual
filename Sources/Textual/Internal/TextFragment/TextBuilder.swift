@@ -15,122 +15,66 @@ import SwiftUI
 // Runs with attachments are converted to placeholder images sized by the attachment's
 // sizeThatFits(_:in:) result. Placeholders are tagged with AttachmentAttribute so overlays
 // can identify and render the actual attachment views at the resolved layout positions.
+//
+// On iOS 16, the TextBuilder16Wrapper class provides an ObservableObject-based implementation
+// while iOS 17+ uses the @Observable-based TextBuilder17 for better SwiftUI integration.
 
-extension TextFragment {
-  @MainActor @Observable final class TextBuilder {
-    var text: Text
+// MARK: - Cache Key Types
 
-    @ObservationIgnored private let content: Content
-    @ObservationIgnored private let cache: NSCache<KeyBox<[AttachmentKey: CGSize]>, Box<Text>>
+struct AttachmentKey: Hashable {
+  let attachment: AnyAttachment
+  let font: Font?
+}
 
-    init(_ content: Content, environment: TextEnvironmentValues) {
-      let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
+/// A hashable representation of attachment sizes for use as cache key.
+/// We need this because CGSize is only Hashable in iOS 18+.
+struct AttachmentSizesCacheKey: Hashable {
+  private let sizes: [AttachmentKey: HashableCGSize]
 
-      self.text = Text(
+  init(_ sizes: [AttachmentKey: CGSize]) {
+    self.sizes = sizes.mapValues { HashableCGSize($0) }
+  }
+}
+
+// MARK: - iOS 17+ Implementation using @Observable
+
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
+@MainActor @Observable final class TextBuilder17<Content: AttributedStringProtocol> {
+  var text: Text
+
+  @ObservationIgnored private let content: Content
+  @ObservationIgnored private let cache: NSCache<KeyBox<AttachmentSizesCacheKey>, Box<Text>>
+
+  init(_ content: Content, environment: TextEnvironmentValues) {
+    let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
+
+    self.text = Text(
+      attributedString: content,
+      attachmentSizes: attachmentSizes,
+      in: environment
+    )
+    self.content = content
+    self.cache = NSCache()
+    self.cache.countLimit = 10
+
+    self.cache.setObject(Box(self.text), forKey: KeyBox(AttachmentSizesCacheKey(attachmentSizes)))
+  }
+
+  func sizeChanged(_ size: CGSize, environment: TextEnvironmentValues) {
+    let attachmentSizes = content.attachmentSizes(for: .init(size), in: environment)
+    let cacheKey = KeyBox(AttachmentSizesCacheKey(attachmentSizes))
+
+    if let text = cache.object(forKey: cacheKey) {
+      self.text = text.wrappedValue
+    } else {
+      let text = Text(
         attributedString: content,
         attachmentSizes: attachmentSizes,
         in: environment
       )
-      self.content = content
-      self.cache = NSCache()
-      self.cache.countLimit = 10
+      cache.setObject(Box(text), forKey: cacheKey)
 
-      self.cache.setObject(Box(self.text), forKey: KeyBox(attachmentSizes))
-    }
-
-    func sizeChanged(_ size: CGSize, environment: TextEnvironmentValues) {
-      let attachmentSizes = content.attachmentSizes(for: .init(size), in: environment)
-      let cacheKey = KeyBox(attachmentSizes)
-
-      if let text = cache.object(forKey: cacheKey) {
-        self.text = text.wrappedValue
-      } else {
-        let text = Text(
-          attributedString: content,
-          attachmentSizes: attachmentSizes,
-          in: environment
-        )
-        cache.setObject(Box(text), forKey: cacheKey)
-
-        self.text = text
-      }
+      self.text = text
     }
   }
-}
-
-extension Text {
-  fileprivate init(
-    attributedString: some AttributedStringProtocol,
-    attachmentSizes: [AttachmentKey: CGSize],
-    in environment: TextEnvironmentValues
-  ) {
-    let textValues = attributedString.runs.map { run in
-      var text: Text
-
-      var runEnvironment = environment
-      runEnvironment.font = run.font ?? environment.font
-
-      let key = run.textual.attachment.map {
-        AttachmentKey(attachment: $0, font: runEnvironment.font)
-      }
-
-      if let key, let size = attachmentSizes[key] {
-        // Create placeholder
-        text = Text(placeholderSize: size)
-          .baselineOffset(key.attachment.baselineOffset(in: runEnvironment))
-          .customAttribute(
-            AttachmentAttribute(
-              key.attachment,
-              presentationIntent: run.presentationIntent
-            )
-          )
-      } else {
-        text = Text(AttributedString(attributedString[run.range]))
-      }
-
-      // Add link attribute for TextLinkInteraction
-      if let link = run.link {
-        text = text.customAttribute(LinkAttribute(link))
-      }
-
-      return text
-    }
-
-    self = textValues.reduce(Text(verbatim: "")) { partialResult, text in
-      Text("\(partialResult)\(text)")
-    }
-  }
-
-  private init(placeholderSize size: CGSize) {
-    self.init(SwiftUI.Image(size: size) { _ in })
-  }
-}
-
-extension AttributedStringProtocol {
-  fileprivate func attachmentSizes(
-    for proposal: ProposedViewSize, in environment: TextEnvironmentValues
-  ) -> [AttachmentKey: CGSize] {
-    Dictionary(
-      self.runs.compactMap { run in
-        guard let attachment = run.textual.attachment else {
-          return nil
-        }
-        var environment = environment
-        environment.font = run.font ?? environment.font
-        return (
-          AttachmentKey(
-            attachment: attachment,
-            font: environment.font
-          ),
-          attachment.sizeThatFits(proposal, in: environment)
-        )
-      },
-      uniquingKeysWith: { existing, _ in existing }
-    )
-  }
-}
-
-private struct AttachmentKey: Hashable {
-  let attachment: AnyAttachment
-  let font: Font?
 }

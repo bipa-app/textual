@@ -1,5 +1,6 @@
 import Foundation
 
+@available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 struct Tuple<each V: Equatable>: Equatable {
   var values: (repeat each V)
 

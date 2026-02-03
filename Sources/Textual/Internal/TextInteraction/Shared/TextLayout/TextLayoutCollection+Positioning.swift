@@ -1,6 +1,7 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
     var startPosition: TextPosition {
       TextPosition(
@@ -159,7 +160,6 @@
       return TextRange(start: start, end: end)
     }
 
-    @available(macOS 10.0, *)
     @available(iOS, unavailable)
     @available(visionOS, unavailable)
     func nextWord(from position: TextPosition) -> TextPosition? {
@@ -188,7 +188,6 @@
       )
     }
 
-    @available(macOS 10.0, *)
     @available(iOS, unavailable)
     @available(visionOS, unavailable)
     func previousWord(from position: TextPosition) -> TextPosition? {
@@ -296,6 +295,7 @@
     }
   }
 
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   extension TextLayoutCollection {
     fileprivate func reconcilePosition(
       _ position: TextPosition,
