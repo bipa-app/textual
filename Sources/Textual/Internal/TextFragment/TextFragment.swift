@@ -100,11 +100,15 @@ final class TextBuilder16Wrapper<Content: AttributedStringProtocol>: ObservableO
   init(_ content: Content, environment: TextEnvironmentValues) {
     let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
 
-    self.text = Text(
-      attributedString: content,
-      attachmentSizes: attachmentSizes,
-      in: environment
-    )
+    if #available(iOS 17.0, *) {
+      self.text = Text(
+        attributedString: content,
+        attachmentSizes: attachmentSizes,
+        in: environment
+      )
+    } else {
+      self.text = Text("")
+    }
     self.content = content
     self.cache = NSCache()
     self.cache.countLimit = 10
@@ -115,11 +119,16 @@ final class TextBuilder16Wrapper<Content: AttributedStringProtocol>: ObservableO
   func updateContent(_ content: Content, environment: TextEnvironmentValues) {
     self.content = content
     let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
-    self.text = Text(
-      attributedString: content,
-      attachmentSizes: attachmentSizes,
-      in: environment
-    )
+    
+    if #available(iOS 17.0, *) {
+      self.text = Text(
+        attributedString: content,
+        attachmentSizes: attachmentSizes,
+        in: environment
+      )
+    } else {
+      self.text = Text("")
+    }
     self.cache.setObject(Box(self.text), forKey: KeyBox(AttachmentSizesCacheKey(attachmentSizes)))
   }
 
@@ -130,11 +139,17 @@ final class TextBuilder16Wrapper<Content: AttributedStringProtocol>: ObservableO
     if let text = cache.object(forKey: cacheKey) {
       self.text = text.wrappedValue
     } else {
-      let text = Text(
-        attributedString: content,
-        attachmentSizes: attachmentSizes,
-        in: environment
-      )
+      
+      let text: Text
+      if #available(iOS 17.0, *) {
+        text = Text(
+          attributedString: content,
+          attachmentSizes: attachmentSizes,
+          in: environment
+        )
+      } else {
+        text = Text("")
+      }
       cache.setObject(Box(text), forKey: cacheKey)
 
       self.text = text
@@ -188,6 +203,7 @@ extension GeometryProxy {
 // MARK: - Helper extension for Text initialization (shared between builders)
 
 extension Text {
+  @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   init(
     attributedString: some AttributedStringProtocol,
     attachmentSizes: [AttachmentKey: CGSize],
