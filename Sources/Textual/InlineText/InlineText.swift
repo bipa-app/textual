@@ -123,18 +123,17 @@ public struct InlineText: View {
         self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
       }
     } else {
-      // iOS 16 fallback: no textContainer coordinate space or text selection
-      WithAttachments(attributedString) {
-        WithInlineStyle($0) {
-          TextFragment($0)
+      // iOS 16 noop: render plain attributed text without the full rendering pipeline.
+      // The pipeline (WithAttachments/WithInlineStyle/TextFragment) uses
+      // AttributedString.Runs, which references symbols not exported by iOS 16's Foundation
+      // when compiled with the iOS 26 SDK, causing a dyld crash at launch.
+      Text(attributedString)
+        .onChange(of: markup) { value in
+          self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
         }
-      }
-      .onChange(of: markup) { value in
-        self.attributedString = (try? parser.attributedString(for: value)) ?? .init()
-      }
-      .onAppear {
-        self.attributedString = (try? parser.attributedString(for: markup)) ?? .init()
-      }
+        .onAppear {
+          self.attributedString = (try? parser.attributedString(for: markup)) ?? .init()
+        }
     }
   }
 }

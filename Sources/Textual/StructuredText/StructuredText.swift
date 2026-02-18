@@ -129,17 +129,18 @@ public struct StructuredText: View {
       // Disable line limit to avoid per-fragment truncation
       .lineLimit(nil)
     } else {
-      // iOS 16 fallback: no textContainer coordinate space or text selection
-      WithAttachments(attributedString) {
-        BlockContent(content: $0)
-      }
-      .onChange(of: markup) { newValue in
-        markupDidChange(newValue)
-      }
-      .onAppear {
-        markupDidChange(markup)
-      }
-      .lineLimit(nil)
+      // iOS 16 noop: render plain attributed text without the full rendering pipeline.
+      // The pipeline (WithAttachments/BlockContent) uses AttributedString.Runs, which
+      // references symbols not exported by iOS 16's Foundation when compiled with the
+      // iOS 26 SDK, causing a dyld crash at launch.
+      Text(attributedString)
+        .onChange(of: markup) { newValue in
+          markupDidChange(newValue)
+        }
+        .onAppear {
+          markupDidChange(markup)
+        }
+        .lineLimit(nil)
     }
   }
 

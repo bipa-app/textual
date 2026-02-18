@@ -236,7 +236,10 @@ struct WithAttachments<Content: View>: View {
     if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
       WithAttachments17(attributedString, content: content)
     } else {
-      WithAttachments16(attributedString, content: content)
+      // iOS 16: pass through content without attachment resolution.
+      // WithAttachments16 uses AttributedString.Runs which references symbols
+      // not available in iOS 16's Foundation when compiled with iOS 26 SDK.
+      content(attributedString)
     }
   }
 }
