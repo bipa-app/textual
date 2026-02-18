@@ -73,7 +73,7 @@ extension AttributedString {
       let range: Range<AttributedString.Index>
     }
 
-    private struct Boundary: Equatable {
+    private struct Boundary {
       let index: AttributedString.Runs.Index
       let intent: PresentationIntent.IntentType?
     }
