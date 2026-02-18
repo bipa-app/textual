@@ -171,9 +171,9 @@ extension AttributedString {
   private func segments() -> [Formatter.Segment] {
     var segments: [Formatter.Segment] = []
 
-    for run in self.runs {
+    self.forEachRun { run in
       guard let presentationIntent = run.presentationIntent else {
-        continue
+        return
       }
 
       if segments.isEmpty || segments.last?.intent != presentationIntent {
@@ -315,9 +315,9 @@ extension Formatter.Block.Container {
 
 extension Formatter.Block.Leaf {
   var inlineNodes: [Formatter.InlineNode] {
-    self.attributedString.runs
-      .map { self.attributedString[$0.range] }
-      .map(Formatter.InlineNode.init)
+    self.attributedString.mapRuns { run in
+      Formatter.InlineNode(self.attributedString[run.range])
+    }
   }
 }
 

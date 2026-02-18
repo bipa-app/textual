@@ -28,7 +28,7 @@ extension AttributedStringMarkdownParser {
 
       var output = AttributedString()
 
-      for run in attributedString.runs {
+      try attributedString.forEachRun { run in
         if run.isPreformatted {
           output.append(attributedString[run.range])
         } else {
