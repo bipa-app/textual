@@ -10,64 +10,50 @@ import Foundation
 // The helpers below iterate by character position instead: subscripting Runs with an
 // AttributedString.Index returns the Run containing that character, and advancing to
 // run.range.upperBound moves to the next run without ever touching Runs.Index.==.
+//
+// IMPORTANT: We cannot use `if #available(iOS 17, ...)` fast paths with direct .runs
+// iteration because the compiler still emits strong symbol references inside availability
+// blocks, causing dyld to fail at load time on iOS 16 where the symbol doesn't exist.
 
 extension AttributedStringProtocol {
   func forEachRun(_ body: (AttributedString.Runs.Run) throws -> Void) rethrows {
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      for run in runs {
-        try body(run)
-      }
-    } else {
-      var position = startIndex
-      while position < endIndex {
-        let run = runs[position]
-        try body(run)
-        position = run.range.upperBound
-      }
+    var position = startIndex
+    while position < endIndex {
+      let run = runs[position]
+      try body(run)
+      position = run.range.upperBound
     }
   }
 
   func mapRuns<T>(_ transform: (AttributedString.Runs.Run) throws -> T) rethrows -> [T] {
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      return try runs.map(transform)
-    } else {
-      var result: [T] = []
-      var position = startIndex
-      while position < endIndex {
-        let run = runs[position]
-        try result.append(transform(run))
-        position = run.range.upperBound
-      }
-      return result
+    var result: [T] = []
+    var position = startIndex
+    while position < endIndex {
+      let run = runs[position]
+      try result.append(transform(run))
+      position = run.range.upperBound
     }
+    return result
   }
 
   func compactMapRuns<T>(
     _ transform: (AttributedString.Runs.Run) throws -> T?
   ) rethrows -> [T] {
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      return try runs.compactMap(transform)
-    } else {
-      var result: [T] = []
-      var position = startIndex
-      while position < endIndex {
-        let run = runs[position]
-        if let value = try transform(run) {
-          result.append(value)
-        }
-        position = run.range.upperBound
+    var result: [T] = []
+    var position = startIndex
+    while position < endIndex {
+      let run = runs[position]
+      if let value = try transform(run) {
+        result.append(value)
       }
-      return result
+      position = run.range.upperBound
     }
+    return result
   }
 
   var firstRun: AttributedString.Runs.Run? {
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      return runs.first
-    } else {
-      guard startIndex < endIndex else { return nil }
-      return runs[startIndex]
-    }
+    guard startIndex < endIndex else { return nil }
+    return runs[startIndex]
   }
 }
 
@@ -92,23 +78,15 @@ extension AttributedStringProtocol {
   }
 
   func containsValues<T>(for keyPaths: Set<KeyPath<AttributeContainer, T?>>) -> Bool {
-    if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      return runs.contains { run in
-        keyPaths.first { keyPath in
-          run.attributes[keyPath: keyPath] != nil
-        } != nil
+    var position = startIndex
+    while position < endIndex {
+      let run = runs[position]
+      if keyPaths.first(where: { run.attributes[keyPath: $0] != nil }) != nil {
+        return true
       }
-    } else {
-      var position = startIndex
-      while position < endIndex {
-        let run = runs[position]
-        if keyPaths.first(where: { run.attributes[keyPath: $0] != nil }) != nil {
-          return true
-        }
-        position = run.range.upperBound
-      }
-      return false
+      position = run.range.upperBound
     }
+    return false
   }
 
   func uniqueValues<T: Hashable>(for keyPath: KeyPath<AttributeContainer, T?>) -> Set<T> {
