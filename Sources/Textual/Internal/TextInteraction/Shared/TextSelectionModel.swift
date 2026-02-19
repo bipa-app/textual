@@ -12,9 +12,8 @@
   // selection stays stable across updates.
 
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-  @Observable
-  final class TextSelectionModel {
-    var selectedRange: TextRange? {
+  final class TextSelectionModel: ObservableObject {
+    @Published var selectedRange: TextRange? {
       willSet {
         selectionWillChange?()
       }
@@ -26,16 +25,12 @@
       }
     }
 
-    @ObservationIgnored
     var selectionWillChange: (() -> Void)?
 
-    @ObservationIgnored
     var selectionDidChange: (() -> Void)?
 
-    @ObservationIgnored
     private var layoutCollection: any TextLayoutCollection
 
-    @ObservationIgnored
     private weak var coordinator: TextSelectionCoordinator?
 
     init(

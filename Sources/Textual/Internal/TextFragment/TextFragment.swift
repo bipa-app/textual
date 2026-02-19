@@ -30,31 +30,28 @@ import SwiftUI
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 struct TextFragment17<Content: AttributedStringProtocol>: View {
   @Environment(\.textEnvironment) private var textEnvironment
-  @State private var textBuilder: TextBuilder17<Content>?
+  @StateObject private var textBuilder: TextBuilder17<Content>
 
   private let content: Content
 
-  init(_ content: Content) {
+  init(_ content: Content, environment: TextEnvironmentValues) {
     self.content = content
+    self._textBuilder = StateObject(wrappedValue: TextBuilder17(content, environment: environment))
   }
 
   var body: some View {
-    text
+    textBuilder.text
       .customAttribute(TextFragmentAttribute())
       .onGeometryChange(for: CGSize?.self, of: \.textContainerSize) { size in
-        guard let size, let textBuilder else { return }
+        guard let size else { return }
         textBuilder.sizeChanged(size, environment: textEnvironment)
       }
-      .onChange(of: content, initial: true) { _, newValue in
-        self.textBuilder = TextBuilder17(newValue, environment: textEnvironment)
+      .onChange(of: content) { _, newValue in
+        textBuilder.updateContent(newValue, environment: textEnvironment)
       }
       .modifier(TextSelectionBackground())
       .modifier(AttachmentOverlay(attachments: content.attachments()))
       .modifier(TextLinkInteraction())
-  }
-
-  private var text: Text {
-    textBuilder?.text ?? Text(verbatim: "")
   }
 }
 
@@ -154,7 +151,7 @@ struct TextFragment<Content: AttributedStringProtocol>: View {
 
   var body: some View {
     if #available(iOS 17, macOS 14, tvOS 17, watchOS 10, *) {
-      TextFragment17(content)
+      TextFragment17(content, environment: textEnvironment)
     } else {
       TextFragment16(content, environment: textEnvironment)
     }

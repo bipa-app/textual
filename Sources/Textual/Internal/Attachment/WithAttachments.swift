@@ -20,7 +20,7 @@ struct WithAttachments17<Content: View>: View {
   @Environment(\.emojiAttachmentLoader) private var emojiAttachmentLoader
   @Environment(\.colorEnvironment) private var colorEnvironment
 
-  @State private var model = WithAttachmentsModel17()
+  @StateObject private var model = WithAttachmentsModel17()
 
   private let attributedString: AttributedString
   private let content: (AttributedString) -> Content
@@ -47,8 +47,8 @@ struct WithAttachments17<Content: View>: View {
 }
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-@MainActor @Observable final class WithAttachmentsModel17 {
-  var resolvedAttributedString: AttributedString?
+@MainActor final class WithAttachmentsModel17: ObservableObject {
+  @Published var resolvedAttributedString: AttributedString?
 
   func resolveAttachments(
     in attributedString: AttributedString,
