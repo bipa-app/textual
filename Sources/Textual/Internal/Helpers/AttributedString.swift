@@ -1,5 +1,61 @@
 import Foundation
 
+// MARK: - Safe run iteration
+//
+// AttributedString.Runs uses IndexingIterator<Runs> which is @frozen/@inlinable
+// in the Swift stdlib. When the compiler specializes it, the inlined next() method
+// references Runs.Index.== — a symbol that doesn't exist on iOS 16.
+//
+// These helpers iterate using the Runs subscript that takes AttributedString.Index
+// (not Runs.Index), so no Runs.Index comparisons are emitted into our binary.
+
+extension AttributedStringProtocol {
+  /// Iterates all runs without referencing `Runs.Index.==`.
+  func forEachRun(_ body: (AttributedString.Runs.Run) -> Void) {
+    let runs = self.runs
+    var position = self.startIndex
+    let end = self.endIndex
+    while position < end {
+      let run = runs[position]
+      body(run)
+      position = run.range.upperBound
+    }
+  }
+
+  /// Returns the first run, or nil if the string is empty.
+  var firstRun: AttributedString.Runs.Run? {
+    guard startIndex < endIndex else { return nil }
+    return runs[startIndex]
+  }
+
+  /// Maps all runs to an array.
+  func mapRuns<T>(_ transform: (AttributedString.Runs.Run) -> T) -> [T] {
+    var result: [T] = []
+    forEachRun { result.append(transform($0)) }
+    return result
+  }
+
+  /// Compact-maps all runs to an array.
+  func compactMapRuns<T>(_ transform: (AttributedString.Runs.Run) -> T?) -> [T] {
+    var result: [T] = []
+    forEachRun { if let value = transform($0) { result.append(value) } }
+    return result
+  }
+
+  /// Returns true if any run satisfies the predicate.
+  func containsRun(where predicate: (AttributedString.Runs.Run) -> Bool) -> Bool {
+    let runs = self.runs
+    var position = self.startIndex
+    let end = self.endIndex
+    while position < end {
+      let run = runs[position]
+      if predicate(run) { return true }
+      position = run.range.upperBound
+    }
+    return false
+  }
+}
+
 extension AttributedStringProtocol {
   var isMathBlock: Bool {
     let attachments = self.attachments()
@@ -21,7 +77,7 @@ extension AttributedStringProtocol {
   }
 
   func containsValues<T>(for keyPaths: Set<KeyPath<AttributeContainer, T?>>) -> Bool {
-    runs.contains { run in
+    containsRun { run in
       keyPaths.first { keyPath in
         run.attributes[keyPath: keyPath] != nil
       } != nil
@@ -30,7 +86,7 @@ extension AttributedStringProtocol {
 
   func uniqueValues<T: Hashable>(for keyPath: KeyPath<AttributeContainer, T?>) -> Set<T> {
     var values: Set<T> = []
-    for run in runs {
+    forEachRun { run in
       if let value = run.attributes[keyPath: keyPath] {
         values.insert(value)
       }
@@ -73,37 +129,38 @@ extension AttributedString {
       let range: Range<AttributedString.Index>
     }
 
-    private struct Boundary: Equatable {
-      let index: AttributedString.Runs.Index
+    private struct Boundary {
+      let lowerBound: AttributedString.Index
       let intent: PresentationIntent.IntentType?
     }
 
     typealias Element = BlockRun
     typealias Index = Int
 
-    private let runs: AttributedString.Runs
     private let boundaries: [Boundary]
+    private let endOfContent: AttributedString.Index
 
     init(
       attributedString: some AttributedStringProtocol,
       parent: PresentationIntent.IntentType?
     ) {
-      self.runs = attributedString.runs
-
       var boundaries: [Boundary] = []
       var lastIntent: PresentationIntent.IntentType?
+      var endOfContent = attributedString.startIndex
 
-      for index in runs.indices {
-        let intent = runs[index].presentationIntent?.intent(before: parent)
+      attributedString.forEachRun { run in
+        let intent = run.presentationIntent?.intent(before: parent)
 
         // Record first run or whenever the intent changes (including nil values)
         if boundaries.isEmpty || intent != lastIntent {
-          boundaries.append(.init(index: index, intent: intent))
+          boundaries.append(.init(lowerBound: run.range.lowerBound, intent: intent))
           lastIntent = intent
         }
+        endOfContent = run.range.upperBound
       }
 
       self.boundaries = boundaries
+      self.endOfContent = endOfContent
     }
 
     var startIndex: Index { boundaries.startIndex }
@@ -119,15 +176,11 @@ extension AttributedString {
 
     subscript(position: Index) -> BlockRun {
       let boundary = boundaries[position]
-      let nextRunIndex =
-        (position + 1 < boundaries.count)
-        ? boundaries[position + 1].index
-        : runs.endIndex
-      let lastRunIndex = runs.index(before: nextRunIndex)
-      let lowerBound = runs[boundary.index].range.lowerBound
-      let upperBound = runs[lastRunIndex].range.upperBound
+      let upperBound = (position + 1 < boundaries.count)
+        ? boundaries[position + 1].lowerBound
+        : endOfContent
 
-      return BlockRun(intent: boundary.intent, range: lowerBound..<upperBound)
+      return BlockRun(intent: boundary.intent, range: boundary.lowerBound..<upperBound)
     }
   }
 }

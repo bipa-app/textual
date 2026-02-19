@@ -27,9 +27,14 @@ extension AttributedStringMarkdownParser {
       }
 
       var output = AttributedString()
+      let runs = attributedString.runs
+      var position = attributedString.startIndex
+      let end = attributedString.endIndex
 
-      for run in attributedString.runs {
-        if run.isPreformatted {
+      while position < end {
+        let run = runs[position]
+
+        if run.attributes.isPreformatted {
           output.append(attributedString[run.range])
         } else {
           let text = String(attributedString[run.range].characters[...])
@@ -51,6 +56,8 @@ extension AttributedStringMarkdownParser {
             }
           }
         }
+
+        position = run.range.upperBound
       }
 
       return output
@@ -69,7 +76,7 @@ extension Array where Element == AttributedStringMarkdownParser.SyntaxExtension 
   }
 }
 
-extension AttributedString.Runs.Run {
+extension AttributeContainer {
   fileprivate var isPreformatted: Bool {
     if self.inlinePresentationIntent?.isPreformatted ?? false {
       return true

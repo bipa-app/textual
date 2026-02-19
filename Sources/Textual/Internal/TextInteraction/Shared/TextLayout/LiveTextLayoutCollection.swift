@@ -1,15 +1,25 @@
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   import SwiftUI
 
+  // MARK: - iOS 16 crash prevention
+  //
+  // These classes store iOS 17+ types (Text.Layout, Text.Layout.Line, etc.) as `Any`
+  // to prevent the Swift runtime from referencing those types in the class metadata.
+  // When Sentry scans all ObjC classes at app startup, it triggers metadata
+  // initialization via swift_getSingletonMetadata. If stored properties reference
+  // iOS 17+ types directly, the metadata init crashes on iOS 16 because those
+  // types don't exist. Boxing them as `Any` avoids this.
+
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   final class LiveTextLayoutCollection: TextLayoutCollection {
     private(set) lazy var layouts: [any TextLayout] = makeLayouts()
 
-    private let base: Text.LayoutKey.Value
+    private let _base: Any
+    private var base: Text.LayoutKey.Value { _base as! Text.LayoutKey.Value }
     private let geometry: GeometryProxy
 
     init(base: Text.LayoutKey.Value, geometry: GeometryProxy) {
-      self.base = base
+      self._base = base
       self.geometry = geometry
     }
 
@@ -52,7 +62,8 @@
     private(set) lazy var bounds: CGRect = makeBounds()
     private(set) lazy var lines: [any TextLine] = makeLines()
 
-    let base: Text.Layout
+    private let _base: Any
+    var base: Text.Layout { _base as! Text.Layout }
 
     private lazy var contents = base.materializeContents()
     private lazy var joinedAttributedString = contents.attributedStrings.joined()
@@ -68,7 +79,7 @@
     }
 
     init(base: Text.Layout, origin: CGPoint) {
-      self.base = base
+      self._base = base
       self.origin = origin
     }
 
@@ -109,11 +120,12 @@
 
     private(set) lazy var runs: [any TextRun] = makeRuns()
 
-    let base: Text.Layout.Line
+    private let _base: Any
+    var base: Text.Layout.Line { _base as! Text.Layout.Line }
     let offset: Int
 
     init(base: Text.Layout.Line, offset: Int = 0) {
-      self.base = base
+      self._base = base
       self.offset = offset
     }
 
@@ -153,11 +165,12 @@
 
     private(set) lazy var slices: [any TextRunSlice] = makeRunSlices()
 
-    let base: Text.Layout.Run
+    private let _base: Any
+    var base: Text.Layout.Run { _base as! Text.Layout.Run }
     let offset: Int
 
     init(base: Text.Layout.Run, offset: Int) {
-      self.base = base
+      self._base = base
       self.offset = offset
     }
 
@@ -190,10 +203,11 @@
     }
 
     let characterRange: Range<Int>
-    let base: Text.Layout.RunSlice
+    private let _base: Any
+    var base: Text.Layout.RunSlice { _base as! Text.Layout.RunSlice }
 
     init(base: Text.Layout.RunSlice, characterRange: Range<Int>) {
-      self.base = base
+      self._base = base
       self.characterRange = characterRange
     }
   }

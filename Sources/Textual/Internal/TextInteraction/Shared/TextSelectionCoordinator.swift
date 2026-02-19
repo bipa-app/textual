@@ -14,8 +14,7 @@ import SwiftUI
 
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-  @Observable
-  final class TextSelectionCoordinator {
+  final class TextSelectionCoordinator: ObservableObject {
     private var models: [WeakBox<TextSelectionModel>] = []
 
     func register(_ model: TextSelectionModel) {
@@ -56,11 +55,11 @@ struct TextSelectionCoordination: ViewModifier {
 #if TEXTUAL_ENABLE_TEXT_SELECTION
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   private struct TextSelectionCoordinationContent17<Content: View>: View {
-    @State private var coordinator = TextSelectionCoordinator()
+    @StateObject private var coordinator = TextSelectionCoordinator()
     let content: Content
 
     var body: some View {
-      content.environment(coordinator)
+      content.environmentObject(coordinator)
     }
   }
 #endif

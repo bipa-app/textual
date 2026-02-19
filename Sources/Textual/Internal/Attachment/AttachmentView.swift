@@ -17,7 +17,7 @@ import SwiftUI
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
 struct AttachmentView: View {
   #if TEXTUAL_ENABLE_TEXT_SELECTION && canImport(AppKit)
-    @Environment(TextSelectionModel.self) private var textSelectionModel: TextSelectionModel?
+    @EnvironmentObject private var textSelectionModel: TextSelectionModel
   #endif
   private let attachments: Set<AnyAttachment>
   private let origin: CGPoint
@@ -70,7 +70,6 @@ struct AttachmentView: View {
     #if TEXTUAL_ENABLE_TEXT_SELECTION && canImport(AppKit)
       guard
         attachment.selectionStyle == .object,
-        let textSelectionModel,
         let selectedRange = textSelectionModel.selectedRange,
         let layoutIndex = textSelectionModel.layoutIndex(of: layout)
       else {

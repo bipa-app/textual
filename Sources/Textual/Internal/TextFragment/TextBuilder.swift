@@ -39,11 +39,11 @@ struct AttachmentSizesCacheKey: Hashable {
 // MARK: - iOS 17+ Implementation using @Observable
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-@MainActor @Observable final class TextBuilder17<Content: AttributedStringProtocol> {
-  var text: Text
+@MainActor final class TextBuilder17<Content: AttributedStringProtocol> : ObservableObject {
+  @Published var text: Text
 
-  @ObservationIgnored private let content: Content
-  @ObservationIgnored private let cache: NSCache<KeyBox<AttachmentSizesCacheKey>, Box<Text>>
+private var content: Content
+private let cache: NSCache<KeyBox<AttachmentSizesCacheKey>, Box<Text>>
 
   init(_ content: Content, environment: TextEnvironmentValues) {
     let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
@@ -57,6 +57,18 @@ struct AttachmentSizesCacheKey: Hashable {
     self.cache = NSCache()
     self.cache.countLimit = 10
 
+    self.cache.setObject(Box(self.text), forKey: KeyBox(AttachmentSizesCacheKey(attachmentSizes)))
+  }
+
+  func updateContent(_ content: Content, environment: TextEnvironmentValues) {
+    self.content = content
+    let attachmentSizes = content.attachmentSizes(for: .unspecified, in: environment)
+    self.text = Text(
+      attributedString: content,
+      attachmentSizes: attachmentSizes,
+      in: environment
+    )
+    self.cache.removeAllObjects()
     self.cache.setObject(Box(self.text), forKey: KeyBox(AttachmentSizesCacheKey(attachmentSizes)))
   }
 

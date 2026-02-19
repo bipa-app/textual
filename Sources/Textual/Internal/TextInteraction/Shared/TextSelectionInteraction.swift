@@ -32,9 +32,9 @@ struct TextSelectionInteraction: ViewModifier {
   @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
   private struct TextSelectionInteractionContent17<Content: View>: View {
     @Environment(\.textSelection) private var textSelection
-    @Environment(TextSelectionCoordinator.self) private var coordinator: TextSelectionCoordinator?
+    @EnvironmentObject private var coordinator: TextSelectionCoordinator
 
-    @State private var model = TextSelectionModel()
+    @StateObject private var model = TextSelectionModel()
 
     let content: Content
 

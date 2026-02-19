@@ -15,7 +15,7 @@ import SwiftUI
 struct HighlightedTextFragment17: View {
   @Environment(\.textEnvironment) private var textEnvironment
 
-  @State private var model = HighlightedTextFragmentModel17()
+  @StateObject private var model = HighlightedTextFragmentModel17()
 
   private let content: AttributedSubstring
   private let languageHint: String?
@@ -52,9 +52,9 @@ struct HighlightedTextFragment17: View {
 }
 
 @available(iOS 17, macOS 14, tvOS 17, watchOS 10, *)
-@MainActor @Observable final class HighlightedTextFragmentModel17 {
-  var tokens: [CodeToken] = []
-  var highlightedCode: AttributedString?
+@MainActor final class HighlightedTextFragmentModel17: ObservableObject {
+  @Published var tokens: [CodeToken] = []
+  @Published var highlightedCode: AttributedString?
 
   func tokenize(content: AttributedSubstring, languageHint: String?) async {
     let code = String(content.characters[...])
