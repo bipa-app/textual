@@ -193,7 +193,7 @@ extension Text {
     attachmentSizes: [AttachmentKey: CGSize],
     in environment: TextEnvironmentValues
   ) {
-    let textValues = attributedString.runs.map { run in
+    let textValues = attributedString.mapRuns { run in
       var text: Text
 
       var runEnvironment = environment
@@ -244,7 +244,7 @@ extension AttributedStringProtocol {
     for proposal: ProposedViewSize, in environment: TextEnvironmentValues
   ) -> [AttachmentKey: CGSize] {
     Dictionary(
-      self.runs.compactMap { run in
+      self.compactMapRuns { run in
         guard let attachment = run.textual.attachment else {
           return nil
         }

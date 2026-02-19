@@ -67,7 +67,7 @@ struct WithInlineStyle<Content: View>: View {
   ) {
     var output = attributedString
 
-    for run in attributedString.runs {
+    attributedString.forEachRun { run in
       var attributes = AttributeContainer()
 
       if let intent = run.inlinePresentationIntent {

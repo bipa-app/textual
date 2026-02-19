@@ -66,7 +66,7 @@ struct WithAttachments17<Content: View>: View {
     await withTaskGroup(
       of: (AnyAttachment?, Range<AttributedString.Index>).self
     ) { group in
-      for run in attributedString.runs {
+      attributedString.forEachRun { run in
         if let imageURL = run.imageURL {
           group.addTask {
             let attachment = try? await imageAttachmentLoader.attachment(
@@ -168,7 +168,7 @@ struct WithAttachments16<Content: View>: View {
     await withTaskGroup(
       of: (AnyAttachment?, Range<AttributedString.Index>).self
     ) { group in
-      for run in attributedString.runs {
+      attributedString.forEachRun { run in
         if let imageURL = run.imageURL {
           group.addTask {
             let attachment = try? await imageAttachmentLoader.attachment(

@@ -75,7 +75,7 @@ extension StructuredText {
     }
 
     private var indentationLevel: Int {
-      content.runs.first?.presentationIntent?.indentationLevel ?? 0
+      content.firstRun?.presentationIntent?.indentationLevel ?? 0
     }
   }
 }
